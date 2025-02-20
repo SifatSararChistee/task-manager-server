@@ -43,6 +43,27 @@ async function run() {
       res.send(result);
     });
 
+    //update task data
+    app.put("/tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const updateTask = req.body;
+      const task = {
+        $set: {
+          title: updateTask.title,
+          description: updateTask.description,
+          category: updateTask.category,
+        },
+      };
+      try {
+        const result = await taskCollection.updateOne(query, task);
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating task:", error);
+        res.status(500).send({ error: "Failed to update task" });
+      }
+    });
+
     //post task for a user
     app.post("/tasks", async (req, res) => {
       const taskData = req.body;
