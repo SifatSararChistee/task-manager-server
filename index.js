@@ -28,6 +28,26 @@ async function run() {
     const taskCollection = client.db("TaskManagerDB").collection("task");
     const userCollection = client.db("TaskManagerDB").collection("user");
 
+    // API to update task order after drag & drop
+    app.post("/tasks/reorder", async (req, res) => {
+      try {
+        const { tasks } = req.body;
+        const bulkOps = tasks.map((task) => ({
+          updateOne: {
+            filter: { _id: new ObjectId(task._id) },
+            update: { $set: { order: task.order } },
+          },
+        }));
+
+        await taskCollection.bulkWrite(bulkOps);
+        res.status(200).json({ message: "Task order updated successfully" });
+      } catch (error) {
+        console.error("Error updating task order:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    });
+
+    //add user in the database
     app.post("/users", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
@@ -43,7 +63,10 @@ async function run() {
     app.get("/tasks/:email", async (req, res) => {
       const email = req.params.email;
       const query = { userEmail: email };
-      const result = await taskCollection.find(query).toArray();
+      const result = await taskCollection
+        .find(query)
+        .sort({ order: 1 })
+        .toArray();
       res.send(result);
     });
 
