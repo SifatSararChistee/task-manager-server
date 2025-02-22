@@ -47,6 +47,25 @@ async function run() {
       }
     });
 
+    //api for updating the category after drag and drop
+    app.put("/tasks/:id/category", async (req, res) => {
+      try {
+        const { id } = req.params;
+        const { category } = req.body;
+
+        // Update task's category in the database
+        const updatedTask = await taskCollection.findByIdAndUpdate(
+          id,
+          { category },
+          { new: true }
+        );
+
+        res.status(200).json(updatedTask);
+      } catch (error) {
+        res.status(500).json({ message: "Failed to update category" });
+      }
+    });
+
     //add user in the database
     app.post("/users", async (req, res) => {
       const user = req.body;
